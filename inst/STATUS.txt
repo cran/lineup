@@ -1,0 +1,48 @@
+Revision history for the R/lineup package
+----------------------------------------------------------------------
+copyright (c) 2011-2012, Karl W Broman
+
+    The R/lineup package is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public
+    License, version 3, as published by the Free Software Foundation.
+    
+    This program is distributed in the hope that it will be useful,
+    but without any warranty; without even the implied warranty of
+    merchantability or fitness for a particular purpose.  See the GNU
+    General Public License for more details.
+    
+    A copy of the GNU General Public License, version 3, is available
+    at http://www.r-project.org/Licenses/GPL-3
+----------------------------------------------------------------------
+
+Version 0.34, 10/15/2012:
+
+    In plot2dist, make default smoothScatter=FALSE
+
+
+Version 0.33, 8/14/2012:
+
+    Added function combinedist, for combining distance matrices
+
+
+Version 0.32, 8/8/2012:
+
+    Added addcovar and intcovar arguments to calc.locallod.
+
+
+Version 0.31, 3/2/2012:
+
+    Added NAMESPACE.
+
+    Revised lineupversion() to use packageVersion().
+
+
+Version 0.30, 5/11/2011:
+
+    This is a new package to contain tools for lining up two data
+    matrices, to detect and correct sample mix-ups.  The key examples
+    are gene expression microarray data on a large set of samples on
+    two tissues, or between genotype and gene expression.
+
+----------------------------------------------------------------------
+end of STATUS.txt
