@@ -1,77 +1,87 @@
-######################################################################
-#
-# find.gene.pseudomarker.R
-#
-# copyright (c) 2011, Karl W Broman
-# last modified Mar, 2011
-# first written Mar, 2011
-#
-#     This program is free software; you can redistribute it and/or
-#     modify it under the terms of the GNU General Public License,
-#     version 3, as published by the Free Software Foundation.
-# 
-#     This program is distributed in the hope that it will be useful,
-#     but without any warranty; without even the implied warranty of
-#     merchantability or fitness for a particular purpose.  See the GNU
-#     General Public License, version 3, for more details.
-# 
-#     A copy of the GNU General Public License, version 3, is available
-#     at http://www.r-project.org/Licenses/GPL-3
-# 
-# Part of the R/lineup package
-# Contains: find.gene.pseudomarker
-#
-######################################################################
+## find.gene.pseudomarker.R
+## Karl W Broman
 
-######################################################################
 # find.gene.pseudomarker:
-#         Function for identifying the closest pseudomarker to each
-#         of a set of genes
-#
-# cross: A cross object (containing results of calc.genoprob or sim.geno)
-#
-# pmap:  Map object with physical locations of markers (positions in Mbp)
-#
-# geneloc: data.frame with chr + physical location (in Mbp) of genes
-#          (gene names as row names)
-#
-# where: look in genotype probabilities or imputated genotypes?
-#
-######################################################################
-
+#' Find nearest peudomarker to each gene
+#'
+#' Pull out the pseudomarker that is closest to the position of each of a
+#' series of genes.
+#'
+#' We first convert positions (by interpolation) from those contained within
+#' \code{cross} to physical coordinates contained in \code{pmap}.  We then use
+#' \code{\link[qtl]{find.pseudomarker}} to identify the closest pseudomarker to
+#' each gene location.
+#'
+#' We also include the positions of the pseudomarkers, and we print a warning
+#' message if pseudomarkers are > 2 Mbp from the respective gene.
+#'
+#' @param cross An object of class \code{"cross"} containing data for a QTL
+#' experiment.  See the help file for \code{\link[qtl]{read.cross}} in the
+#' R/qtl package (\url{http://www.rqtl.org}).
+#' @param pmap A physical map of the markers in \code{cross}, with locations in
+#' Mbp.  This is a list whose components are the marker locations on each
+#' chromosome.
+#' @param geneloc A data frame specifying the physical locations of the genes.
+#' There should be two columns, \code{chr} for chromosome and \code{pos} for
+#' position in Mbp.  The rownames should indicate the gene names.
+#' @param where Indicates whether to pull pseudomarkers from the genotype
+#' probabilities (produced by \code{\link[qtl]{calc.genoprob}}) or from the
+#' imputed genotypes (produced by \code{\link[qtl]{sim.geno}}).
+#' @return A data frame with columns \code{chr} (the chromosome) and
+#' \code{pmark} (the name of the pseudomarker).  The third column \code{pos}
+#' contains the Mbp position of the pseudomarker.  The final column is the
+#' signed distance between the gene and the pseudomarker.  The rownames
+#' indicate the gene names.
+#' @author Karl W Broman, \email{kbroman@@biostat.wisc.edu}
+#' @seealso \code{\link[qtl]{find.pseudomarker}},
+#' \code{\link[qtl]{find.pseudomarkerpos}}, \code{\link{plotEGclass}},
+#' \code{\link{disteg}}, \code{\link{calc.locallod}}
+#' @keywords utilities
+#' @examples
+#' data(f2cross, expr1, genepos, pmap)
+#' library(qtl)
+#' \dontshow{
+#' n_ind <- 20
+#' n_genes <- 5
+#' f2cross <- f2cross[,1:n_ind]
+#' expr1 <- expr1[1:n_ind,1:n_genes]
+#' genepos <- genepos[1:n_genes,]}
+#' # calc QTL genotype probabilities
+#' f2cross <- calc.genoprob(f2cross, step=1)
+#'
+#' # find nearest pseudomarkers
+#' pmark <- find.gene.pseudomarker(f2cross, pmap, genepos, "prob")
+#'
+#' @export
 find.gene.pseudomarker <-
-function(cross, pmap, geneloc, where=c("prob", "draws"))
+    function(cross, pmap, geneloc, where=c("prob", "draws"))
 {
-  where <- match.arg(where)
-  if(!(where %in% names(cross$geno[[1]]))) 
-    stop("You first need to run ", ifelse(where=="prob", "calc.genoprob", "sim.geno"), ".")
-  
-  require(qtl)
+    where <- match.arg(where)
+    if(!(where %in% names(cross$geno[[1]])))
+        stop("You first need to run ", ifelse(where=="prob", "calc.genoprob", "sim.geno"), ".")
 
-  cross <- replacemap(cross, pmap)
-  res <- data.frame(chr=geneloc$chr,
-                    pmark=find.pseudomarker(cross, geneloc$chr, geneloc$pos, where, addchr=FALSE),
-                    stringsAsFactors=FALSE)
+    cross <- qtl::replacemap(cross, pmap)
+    res <- data.frame(chr=geneloc$chr,
+                      pmark=qtl::find.pseudomarker(cross, geneloc$chr, geneloc$pos, where, addchr=FALSE),
+                      stringsAsFactors=FALSE)
 
-  rownames(res) <- rownames(geneloc)
+    rownames(res) <- rownames(geneloc)
 
-  pmark <- res$pmark
-  gr <- grep("^loc[0-9]+\\.*[0-9]*(\\.[0-9]+)*$", pmark)
-  if(length(gr)>0) 
-    pmark[gr] <- paste("c", res$chr[gr], ".", pmark[gr], sep="")
-  upmark <- unique(pmark)
-  thepos <- find.pseudomarkerpos(cross, upmark, where)
-  res$pos <- thepos[match(pmark, rownames(thepos)),2]
+    pmark <- res$pmark
+    gr <- grep("^loc[0-9]+\\.*[0-9]*(\\.[0-9]+)*$", pmark)
+    if(length(gr)>0)
+        pmark[gr] <- paste("c", res$chr[gr], ".", pmark[gr], sep="")
+    upmark <- unique(pmark)
+    thepos <- qtl::find.pseudomarkerpos(cross, upmark, where)
+    res$pos <- thepos[match(pmark, rownames(thepos)),2]
 
-  res <- cbind(res, dist.from.gene=(d <- geneloc$pos - res$pos))
-  d <- abs(d)
-  if(any(d > 2)) {
-    ngap <- sum(d>2)
-    maxd <- max(d)
-    warning(ngap, " genes differ from pseudomarker pos by > 2 Mbp, with gaps as big as ", round(maxd, 1), " Mbp")
-  }
+    res <- cbind(res, dist.from.gene=(d <- geneloc$pos - res$pos))
+    d <- abs(d)
+    if(any(d > 2)) {
+        ngap <- sum(d>2)
+        maxd <- max(d)
+        warning(ngap, " genes differ from pseudomarker pos by > 2 Mbp, with gaps as big as ", round(maxd, 1), " Mbp")
+    }
 
-  res
+    res
 }
-
-# end of find.gene.pseudomarker.R

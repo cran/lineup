@@ -1,0 +1,383 @@
+---
+title: R/lineup user guide
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{R/lineup user guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8](inputenc)
+---
+
+```{r knitr_options, include=FALSE}
+library(knitr)
+opts_chunk$set(fig.width=7, fig.height=4.5)
+options(digits=4, scipen=5)
+```
+
+[R/lineup](https://github.com/kbroman/lineup) is an
+[R](http://www.r-project.org) package with tools for
+detecting and correcting sample mix-ups between two sets of
+measurements, such as between gene expression data on two tissues, and
+between gene expression and marker genotype data in an experimental cross. The
+package is particularly aimed at eQTL data for an experimental cross
+and as a companion to [R/qtl](http://rqtl.org).
+
+This document provides a brief tutorial on the use of the package.
+
+## Example data
+
+```{r load_data_hidden, include=FALSE}
+library(qtl)
+library(lineup)
+data(f2cross)
+data(expr1)
+data(expr2)
+data(pmap)
+data(genepos)
+```
+
+
+We will consider a set of simulated data as an example. This is an
+F~2~ intercross with `r nind(f2cross)` individuals genotyped at
+`r totmar(f2cross)` autosomal markers, and with gene expression data on
+`r ncol(expr1)` genes in two tissues.
+
+We first load the R/qtl and R/lineup packages.
+
+```{r load_libraries, eval=FALSE}
+library(qtl)
+library(lineup)
+```
+
+The data are immediately available, but we can also make copies in our
+workspace with `data()`.
+
+```{r load_data_shown, eval=FALSE}
+data(f2cross)
+data(expr1)
+data(expr2)
+data(pmap)
+data(genepos)
+```
+
+The data set `f2cross` is the experimental cross, in the form used by
+[R/qtl](http://rqtl.org) (that is, an object of class `"cross"`).  The
+data sets `expr1` and `expr2` are matrices with the gene expression
+data, with individuals as rows and genes as columns. The object `pmap` is a
+physical map of the markers in `f2cross` (with positions in Mbp), and
+`genepos` is a data frame with the genomic positions (in Mbp) of the
+genes in `expr1` and `expr2`.
+
+The expression data sets were stored as integers; let's divide all
+values by 1000, to simplify some later plots.
+
+```{r scale_expr}
+expr1 <- expr1/1000
+expr2 <- expr2/1000
+```
+
+
+## Lining up expression data
+
+We'll first consider the gene expression data in `expr1` and `expr2`
+and look for possible sample mix-ups. The basic scheme (see
+[Broman et al. 2014](http://arxiv.org/abs/1402.2633)) is to identify a
+set of genes with highly correlated expression between the two
+tissues, and then use these genes to measure the association between
+each sample in the first tissue with each sample in the second tissue.
+
+To start, note that there are 98 individuals in each data set; there
+are two individuals missing from each.
+
+```{r summary_expr}
+nrow(expr1)
+nrow(expr2)
+```
+
+The function `findCommonID()` helps to find individuals that are in
+common between the two data sets. For matrices, the default is to use
+the row names as identifiers.
+
+```{r find_commond_ind_expr}
+eid <- findCommonID(expr1, expr2)
+length(eid$first)
+```
+
+In the returned object, `eid$first` and `eid$second` contain indices
+for `expr1` and `expr2`, respectively, to get them to line up (and
+omitting individuals that appear in one data set but not the other).
+
+Now let's look at the correlation between tissues for each gene,
+to identify genes that are highly correlated between the two tissues.
+We subset the rows with the IDs in `eid`, so that the rows
+correspond (except perhaps for sample mix-ups, but we've not
+identified those yet).
+
+The function `corbetw2mat()` can be used to calculate portions of the
+correlations between columns of two different matrices . With
+`what="paired"` (the default), we assume that the two matrices have the same number
+of columns (say _p_), and that column _i_ in the first matrix corresponds to
+column _i_ in the second matrix, and we calculate just the _p_
+correlation values, for the paired columns.
+
+```{r find_correlated_genes}
+cor_ee <- corbetw2mat(expr1[eid$first,], expr2[eid$second,], what="paired")
+```
+
+Here's a histogram of these `r length(cor_ee)` correlations.
+
+```{r hist_corr_betw_tissues}
+par(mar=c(5,4,1,1))
+hist(cor_ee, breaks=seq(-1, 1, len=101), main="", las=1,
+     xlab="Correlation in gene expression between tissues")
+```
+
+You can see that this is totally contrived data. Most genes have a
+positive correlation between the two tissues, with a bunch in the
+0 &ndash; 0.5 range, and then a bunch more near 1. But then
+`r round(mean(cor_ee < 0)*100)`% of genes are negatively correlated,
+again with the pattern that a bunch are in the range -0.5 &ndash; 0 and
+then a bunch more are near -1.
+
+Let's focus on genes that have between-tissue correlation > 0.9 in
+absolute value (of which there are `r sum(abs(cor_ee)>0.9)`), and then
+look at the correlation, across these genes,
+between samples in tissue 1 and samples in tissue 2. This is done with
+the `distee()` function ("dist" for distance and "ee" for expression
+vs. expression).
+
+```{r distee}
+d_ee <- distee(expr1[,abs(cor_ee)>0.9], expr2[,abs(cor_ee)>0.9], d.method="cor")
+```
+
+The result is an object of class `"lineupdist"`. If you plot the
+result, you'll get two histograms: one of the self-self correlations,
+and another of the self-nonself correlations.
+
+```{r plot_distee, fig.height=9}
+par(mar=c(5,4,2,1))
+plot(d_ee)
+```
+
+For most individuals, the self-self correlation (top panel) is near 1, but there
+are `r sum(pulldiag(d_ee) < 0.5)` individuals with
+self-self correlation < 0.5.  Similarly, most of the self-nonself
+correlations (bottom panel) are between -0.5 and 0.5, but there's a group of
+`r sum(!is.na(omitdiag(d_ee)) & omitdiag(d_ee) > 0.5)` correlations where the
+self-nonself correlation is near 1.
+
+You can use the helper functions `pulldiag()` and `omitdiag()` to do
+these sorts of counts: `pulldiag()` pulls out the "diagonal" of the
+correlation matrix (the self-self cases), and `omitdiag()` sets those
+diagonal values to `NA`.
+
+So to count the number of self-self correlations that are < 0.5, we
+do the following.
+
+```{r count_small_selfself}
+sum(pulldiag(d_ee) < 0.5)
+```
+
+To count the number of self-nonself correlations that are > 0.5, we do
+the following.
+
+```{r count_large_selfnonself}
+d_ee_nodiag <- omitdiag(d_ee)
+sum( !is.na(d_ee_nodiag) & d_ee_nodiag > 0.5)
+```
+
+
+Applying the `summary()` function to the output of `distee()` gives a
+pair of tables that indicate potential mix-ups.
+
+```{r summary_distee}
+summary(d_ee)
+```
+
+In the first table, each row is a sample from the first data set.  The
+first column (`maxc`) is the maximum correlation between that sample
+and the different samples in the second data set, the second column
+(`nextc`) is the next-highest correlation, and the third column
+(`selfc`) is the self-self correlation. For the rows where `selfc` is
+low but `maxc` is high, a sample mix-up is indicated. The last column
+is the sample in the second data set that has the highest correlation.
+The rows are ordered by the value in `maxc`, but with some re-ordering
+to bring apparent matches adjacent to each other.
+
+In the second table, the rows correspond to samples in the second
+data set.
+
+The rows with `NA` in the `selfc` column are cases where a sample
+appears in one data set but not the other. In these cases, we expect
+the maximum correlation to be small, and for these cases it is.
+
+However, there appear to be two pairs of sample mix-ups: (44,66) and
+(24,92). They have low values for `selfc` and high values for `maxc`,
+consistently between the two data sets.  But we don't know whether the
+mix-ups are in the first or second data set. (We'll work that out when
+we consider, below, the relationship between the expression data and
+the genotypes.)
+
+In addition, sample 48 in the first data set appears to be much like sample
+76 in the second data set, but sample 48 in the second data set doesn't
+look like any of the samples in the first data set. This is the sort of
+thing you see when there is a sample duplicate: sample 48 in
+the first data set is perhaps a copy of sample 76 in the first data set.
+
+If we make a scatterplot those two samples, which have correlation >
+0.99 across all genes, it's pretty clear that they're duplicates.
+
+```{r plot_expr_dup, fig.width=7}
+par(mar=c(5,4,1,1))
+plot(expr1["48",], expr1["76",],
+     xlab="Sample 48, expr1", ylab="Sample 76, expr1",
+     las=1, pch=21, bg="slateblue", cex=0.7)
+```
+
+
+We could drop sample 48 from the first data set, but we should
+first average these two "unintended technical replicates" (we measured
+the same thing twice, so why not combine the pairs of measurements),
+and then drop the sample.
+
+```{r drop_expr1_sample48}
+expr1["76",] <- colMeans(expr1[c("48", "76"),])
+expr1 <- expr1[rownames(expr1)!="48",]
+```
+
+
+
+## Lining up expression and genotype data
+
+Let's now turn to lining up the expression data with the genotype
+data. The procedure is a bit like that above, in lining up the two
+expression data sets. We first find phenotype/genotype pairs that are
+highly associated; we'll look at the association between the
+expression of a gene and the genotype at its genomic position (that
+is, the local-eQTL effect). We select genes with very strong
+local-eQTL, and use them to form classifiers, of genotype from
+expression phenotype. We then compare the predicted genotypes at the
+eQTL to the observed marker genotypes.
+
+We first calculate QTL genotype probabilities at a grid along the
+genome. We assume a 0.2% genotyping error rate and do the calculations
+at the markers and on a 1 cM grid across each chromosome.
+
+```{r calc_genoprob}
+f2cross <- calc.genoprob(f2cross, step=1, error.prob=0.002)
+```
+
+We then need to find, for each gene, the marker or pseudomarker that
+is closest to its position. We can use `find.gene.pseudomarker()` to
+do so, interpolating between the physical and genetic marker maps.
+Recall that `pmap` is the physical map of the markers in `f2cross`,
+and `genepos` is a data frame with the physical positions of the genes
+in the expression data.
+
+```{r find_pseudomarkers, warning=FALSE}
+pmar <- find.gene.pseudomarker(f2cross, pmap, genepos)
+```
+
+This gives us a warning that a small number of genes are > 2 Mbp
+from any pseudomarker, but we can ignore this.
+
+We now use `calc.locallod()` to perform a QTL analysis for each
+expression trait. (With the argument `n.cores`, these calculations
+can be performed in parallel with that many CPU cores. Use
+`n.cores=0` to automatically detect the number of available cores.)
+For each gene, we just look at the one location that
+is closest to its genomic position.  We use `findCommonID()` again to
+identify the individuals in common between the cross and the
+expression data sets, and to line up these assumed-to-be-matching
+individuals.
+
+```{r calc_locallod, message=FALSE}
+id1 <- findCommonID(f2cross, expr1)
+lod1 <- calc.locallod(f2cross[,id1$first], expr1[id1$second,], pmar, verbose=FALSE)
+id2 <- findCommonID(f2cross, expr2)
+lod2 <- calc.locallod(f2cross[,id2$first], expr2[id2$second,], pmar, verbose=FALSE)
+```
+
+The `lod1` and `lod2` results are vectors of `r length(lod1)`
+LOD scores (one LOD score for each gene, calculated near its genomic
+location). These LOD scores have highly skewed distributions.
+There are `r sum(lod1>25)` and `r sum(lod2>25)` genes with LOD > 25 in
+the two data sets, respectively.
+
+We'll use these genes to form classifiers for predicting eQTL genotype
+from expression phenotype, and then we'll calculate a distance measure
+(proportion of differences, between the observed and predicted eQTL
+genotypes) between each genotype sample and each expression array.
+
+```{r disteg}
+d_eg_1 <- disteg(f2cross, expr1[, lod1>25], pmar, verbose=FALSE)
+d_eg_2 <- disteg(f2cross, expr2[, lod2>25], pmar, verbose=FALSE)
+```
+
+When we use `summary()` with these results, we get tables much like
+what we got for the correlations between samples in the gene
+expression arrays, but here we're looking for small rather than large
+values.  In the first table, the rows correspond to genotype samples;
+in the second table, the rows correspond to expression arrays.
+
+
+```{r summary_g_vs_expr1}
+summary(d_eg_1)
+```
+
+Between the genotype data and the first expression data set, we see
+three mix-ups: (31,84), (65,68), and (24,92).  Recall that (24,92) was
+a mix-up between expr1 and expr2.  The minimum distances (`mind`) are
+a bit high, but this is likely because the sample sizes are small and
+the QTL effects are not huge.
+
+Here is the summary for the second data set.
+
+```{r summary_g_vs_expr2}
+summary(d_eg_2)
+```
+
+Between the genotype data and the second expression data set, we see
+three mix-ups: (31,84), (65,68), and (44,66).  Recall that (44,66) was
+a mix-up between expr1 and expr2.
+
+The `4:92` in the last row in the top table indicates that there was a
+tie in which expression arrays were closest, in terms of proportion of
+mismatches between observed and predicted eQTL genotypes. (Note that
+`mind` and `nextd` are the same in this case.)
+
+The function `combinedist()` can be used to combine the two sets of
+distances, useful for the cases where the problem is in the genotype
+data, as with more genotype:phenotype comparisons, there will be
+greater separation, in terms of proportion mismatches, between the
+correct and incorrect pairs.
+
+```{r combinedist}
+d_eg <- combinedist(d_eg_1, d_eg_2)
+summary(d_eg)
+```
+
+The cases with mix-ups in one or the other expression data set become
+a bit muddled, but the two mix-ups in the genotype data, (31,84) and
+(65,68), remain clear.
+
+
+
+
+## Conclusions
+
+The (24,92) samples were mixed-up between the two expression data sets
+and between the first expression data set and the genotypes. We
+conclude that the mix-up was likely in the first expression data set.
+
+
+Similarly, (44,66) were mixed-up between the two expression data sets
+and between the *second* expression data set and the genotypes. We
+conclude that the mix-up was likely in the second expression data set.
+
+
+Finally, in the genotype data, (31,84) were swapped, as were
+(65,68). That these were concordant between the two expression data sets
+leads us to conclude that the error was in the genotypes.
+
+There was also that duplicate in the first expression data set: sample
+48 was a duplicate of sample 76.

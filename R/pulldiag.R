@@ -1,38 +1,39 @@
-######################################################################
-#
-# pulldiag.R
-#
-# copyright (c) 2011-2012, Karl W Broman
-# last modified Aug, 2012
-# first written Mar, 2011
-#
-#     This program is free software; you can redistribute it and/or
-#     modify it under the terms of the GNU General Public License,
-#     version 3, as published by the Free Software Foundation.
-# 
-#     This program is distributed in the hope that it will be useful,
-#     but without any warranty; without even the implied warranty of
-#     merchantability or fitness for a particular purpose.  See the GNU
-#     General Public License, version 3, for more details.
-# 
-#     A copy of the GNU General Public License, version 3, is available
-#     at http://www.r-project.org/Licenses/GPL-3
-# 
-# Part of the R/lineup package
-# Contains: pulldiag
-#
-######################################################################
+## pulldiag.R
+## Karl W Broman
 
-##############################
-# pull out the "diagonal" from a distance matrix
-#     (the self-self cases)
-##############################
-
+#' Pull out the diagonal from a distance matrix
+#'
+#' Pull out the diagonal from a distance matrix calculated by
+#' \code{\link{distee}} (that is, self-self distances).
+#'
+#' We use the row and column names to identify which entries are self-self.
+#'
+#' @param d A distance matrix calculated by \code{\link{distee}}.
+#' @return A vector with the self-self distances.
+#' @author Karl W Broman, \email{kbroman@@biostat.wisc.edu}
+#' @seealso \code{\link{omitdiag}}, \code{\link{distee}}, \code{\link{disteg}},
+#' \code{\link{summary.lineupdist}}, \code{\link{plot2dist}},
+#' \code{\link{plot.lineupdist}}
+#' @keywords array
+#' @examples
+#' data(expr1, expr2)
+#'
+#' \dontshow{expr1 <- expr1[,1:500]
+#' expr2 <- expr2[,1:500]}
+#'
+#' # distance as RMS difference
+#' d <- distee(expr1, expr2)
+#'
+#' # pull out the self-self distances
+#' d_selfself <- pulldiag(d)
+#'
+#' # samples with smallest self-self correlation
+#' sort(d_selfself)[1:10]
+#'
+#' @export
 pulldiag <-
-function(d)
+    function(d)
 {
-  ind <- findCommonID(rownames(d), colnames(d))
-  diag(unclass(d)[ind$first,ind$second])
+    ind <- findCommonID(rownames(d), colnames(d))
+    diag(unclass(d)[ind$first,ind$second])
 }
-  
-# end of pulldiag.R
