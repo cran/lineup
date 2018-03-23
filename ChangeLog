@@ -1,6 +1,6 @@
 Revision history for the R/lineup package
 ----------------------------------------------------------------------
-copyright (c) 2011-2015, Karl W Broman
+copyright (c) 2011-2018, Karl W Broman
 
     The R/lineup package is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public
@@ -12,12 +12,24 @@ copyright (c) 2011-2015, Karl W Broman
     General Public License for more details.
 
     A copy of the GNU General Public License, version 3, is available
-    at http://www.r-project.org/Licenses/GPL-3
+    at https://www.r-project.org/Licenses/GPL-3
 ----------------------------------------------------------------------
 
-Version 0.37, 2015-06-24:
+Version 0.37-10, 2018-03-23
+
+    Add ByteCompile to the DESCRIPTION file
+
+
+Version 0.37-9, 2017-05-19
+
+    Small changes to avoid Note about "R_registerRoutines"
+
+
+Version 0.37, 2015-07-20:
 
     Add a vignette and example data.
+
+    calc.locallod can do calculations in parallel
 
 
 Version 0.36, 2014-05-02:
