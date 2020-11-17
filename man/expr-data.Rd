@@ -6,7 +6,9 @@
 \alias{expr1}
 \alias{expr2}
 \title{Example gene expression data}
-\format{A matrix of integers, individuals as rows and genes as columns.}
+\format{
+A matrix of integers, individuals as rows and genes as columns.
+}
 \usage{
 data(expr1)
 data(expr2)
@@ -28,6 +30,6 @@ rho <- corbetw2mat(expr1[id$first,], expr2[id$second,])
 hist(rho, breaks=100)
 }
 \seealso{
-\code{\link{genepos}}, \code{\link{f2cross}}, \code{\link{pmap}}
+\code{\link[=genepos]{genepos()}}, \code{\link[=f2cross]{f2cross()}}, \code{\link[=pmap]{pmap()}}
 }
 \keyword{datasets}

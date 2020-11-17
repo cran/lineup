@@ -11,18 +11,18 @@
 #' The row and column names of the input distance matrices define the
 #' individual IDs.
 #'
-#' If the input distance matrices all have an attribute \code{"denom"} (for
-#' denominator) and \code{method="mean"}, we use a weighted mean, weighted by
+#' If the input distance matrices all have an attribute `"denom"` (for
+#' denominator) and `method="mean"`, we use a weighted mean, weighted by
 #' the denominators.  This could be used to calculate an overall proportion.
 #'
-#' @param \dots Set of distance matrices, as calculated by \code{\link{distee}}
-#' or \code{\link{disteg}}.
+#' @param \dots Set of distance matrices, as calculated by [distee()]
+#' or [disteg()].
 #' @param method Indicates whether to summarize using the median or the mean.
-#' @return A distance matrix, with class \code{"lineupdist"}.  The individual
+#' @return A distance matrix, with class `"lineupdist"`.  The individual
 #' IDs are in the row and column names.
 #' @author Karl W Broman, \email{broman@@wisc.edu}
-#' @seealso \code{\link{distee}}, \code{\link{disteg}},
-#' \code{\link{summary.lineupdist}}
+#' @seealso [distee()], [disteg()],
+#' [summary.lineupdist()]
 #' @keywords utilities
 #' @examples
 #' library(qtl)
@@ -76,11 +76,21 @@ combinedist <-
     # input is already a list?
     if(length(v) == 1 && is.list(v[[1]])) v <- v[[1]]
 
-    if(!all(sapply(v, function(a) "lineupdist" %in% class(a))))
+    if(!all(sapply(v, function(a) inherits(a, "lineupdist"))))
         stop("Input distance matrices must each be of class \"lineupdist\".")
 
-    if(length(unique(sapply(v, function(a) class(a)[1]))) > 1)
+    # check that they all have exactly the same class
+    cl <- lapply(v, class)
+    cl_len <- sapply(cl, length)
+    if(!all(cl_len == cl_len[1])) {
         stop("Need all of the distance matrices to be the same type.")
+    }
+    else {
+        same <- sapply(cl, function(a) all(a==cl[[1]]))
+        if(!all(same)) {
+            stop("Need all of the distance matrices to be the same type.")
+        }
+    }
 
     rn <- unique(unlist(lapply(v, rownames)))
     cn <- unique(unlist(lapply(v, colnames)))

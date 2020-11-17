@@ -4,13 +4,20 @@
 \alias{calc.locallod}
 \title{Calculate LOD score at physical position of each gene}
 \usage{
-calc.locallod(cross, pheno, pmark, addcovar = NULL, intcovar = NULL,
-  verbose = TRUE, n.cores = 1)
+calc.locallod(
+  cross,
+  pheno,
+  pmark,
+  addcovar = NULL,
+  intcovar = NULL,
+  verbose = TRUE,
+  n.cores = 1
+)
 }
 \arguments{
 \item{cross}{An object of class \code{"cross"} containing data for a QTL
-experiment.  See the help file for \code{\link[qtl]{read.cross}} in the
-R/qtl package (\url{http://www.rqtl.org}).  There must be a phenotype named
+experiment.  See the help file for \code{\link[qtl:read.cross]{qtl::read.cross()}} in the
+R/qtl package (\url{https://rqtl.org}).  There must be a phenotype named
 \code{"id"} or \code{"ID"} that contains the individual identifiers.}
 
 \item{pheno}{A data frame of phenotypes (generally gene expression data),
@@ -18,16 +25,16 @@ stored as individuals x phenotypes.  The row names must contain individual
 identifiers.}
 
 \item{pmark}{Pseudomarkers that are closest to the genes in \code{pheno}, as
-output by \code{\link{find.gene.pseudomarker}}.}
+output by \code{\link[=find.gene.pseudomarker]{find.gene.pseudomarker()}}.}
 
-\item{addcovar}{Additive covariates passed to \code{\link{scanone}}.}
+\item{addcovar}{Additive covariates passed to \code{\link[=scanone]{scanone()}}.}
 
-\item{intcovar}{Interactive covariates passed to \code{\link{scanone}}.}
+\item{intcovar}{Interactive covariates passed to \code{\link[=scanone]{scanone()}}.}
 
 \item{verbose}{If TRUE, print tracing information.}
 
 \item{n.cores}{Number of CPU cores to use in the calculations. With
-\code{n.cores=0}, \code{\link[parallel]{detectCores}} is used to
+\code{n.cores=0}, \code{\link[parallel:detectCores]{parallel::detectCores()}} is used to
 detect the number of available cores.}
 }
 \value{
@@ -40,7 +47,7 @@ LOD score at those positions to assess evidence for local eQTL.
 }
 \details{
 \code{cross} and \code{pheno} must contain exactly the same individuals in
-the same order.  (Use \code{\link{findCommonID}} to line them up.)
+the same order.  (Use \code{\link[=findCommonID]{findCommonID()}} to line them up.)
 
 We consider the expression phenotypes in batches: those whose closest
 pseudomarker is the same.
@@ -48,7 +55,7 @@ pseudomarker is the same.
 We use Haley-Knott regression to calculate the LOD scores.
 
 Actually, we use a bit of a contortion of the data to force the
-\code{\link[qtl]{scanone}} function in R/qtl to calculate the LOD score at a
+\code{\link[qtl:scanone]{qtl::scanone()}} function in R/qtl to calculate the LOD score at a
 single position.
 
 We omit any transcripts that map to the X chromosome; we can only handle
@@ -77,8 +84,8 @@ locallod <- calc.locallod(f2cross[,id$first], expr1[id$second,], pmark)
 
 }
 \seealso{
-\code{\link{find.gene.pseudomarker}}, \code{\link{plotEGclass}},
-\code{\link{findCommonID}}, \code{\link{disteg}}
+\code{\link[=find.gene.pseudomarker]{find.gene.pseudomarker()}}, \code{\link[=plotEGclass]{plotEGclass()}},
+\code{\link[=findCommonID]{findCommonID()}}, \code{\link[=disteg]{disteg()}}
 }
 \author{
 Karl W Broman, \email{broman@wisc.edu}

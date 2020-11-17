@@ -4,14 +4,25 @@
 \alias{plot2dist}
 \title{Plot two sets of inter-individual distances against one another}
 \usage{
-plot2dist(d1, d2, hirow = NULL, hicol = NULL, xlab = NULL,
-  ylab = NULL, smoothScatter = FALSE, colself = "black",
-  colnonself = "gray", colhirow = "green", colhicol = "orange", ...)
+plot2dist(
+  d1,
+  d2,
+  hirow = NULL,
+  hicol = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  smoothScatter = FALSE,
+  colself = "black",
+  colnonself = "gray",
+  colhirow = "green",
+  colhicol = "orange",
+  ...
+)
 }
 \arguments{
-\item{d1}{Output of \code{\link{distee}}.}
+\item{d1}{Output of \code{\link[=distee]{distee()}}.}
 
-\item{d2}{Output of \code{\link{distee}}.}
+\item{d2}{Output of \code{\link[=distee]{distee()}}.}
 
 \item{hirow}{Names of rows to highlight in green.}
 
@@ -22,8 +33,7 @@ plot2dist(d1, d2, hirow = NULL, hicol = NULL, xlab = NULL,
 \item{ylab}{Y-axis label (optional)}
 
 \item{smoothScatter}{If TRUE, plot non-self distances with
-\code{\link[graphics]{smoothScatter}}; if FALSE, use
-\code{\link[graphics]{plot}}.}
+\code{\link[graphics:smoothScatter]{graphics::smoothScatter()}}; if FALSE, use \code{base::plot()}.}
 
 \item{colself}{Color to use for the self-self points.  If NULL, these aren't
 plotted.}
@@ -37,8 +47,8 @@ aren't plotted.}
 \item{colhicol}{Color to use for the \code{hicol} points.  If NULL, these
 aren't plotted.}
 
-\item{\dots}{Passed to \code{\link[graphics]{plot}} and
-\code{\link[graphics]{points}}.}
+\item{\dots}{Passed to \code{base::plot()} and
+\code{\link[graphics:points]{graphics::points()}}.}
 }
 \value{
 None.
@@ -62,8 +72,8 @@ plot2dist(d_rmsd, d_cor)
 
 }
 \seealso{
-\code{\link{pulldiag}}, \code{\link{distee}},
-\code{\link{summary.lineupdist}}
+\code{\link[=pulldiag]{pulldiag()}}, \code{\link[=distee]{distee()}},
+\code{\link[=summary.lineupdist]{summary.lineupdist()}}
 }
 \author{
 Karl W Broman, \email{broman@wisc.edu}

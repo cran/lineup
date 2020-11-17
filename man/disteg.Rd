@@ -4,16 +4,26 @@
 \alias{disteg}
 \title{Calculate distance between two gene expression data sets}
 \usage{
-disteg(cross, pheno, pmark, min.genoprob = 0.99, k = 20,
-  min.classprob = 0.8, classprob2drop = 1, repeatKNN = TRUE,
-  max.selfd = 0.3, phenolabel = "phenotype", weightByLinkage = FALSE,
+disteg(
+  cross,
+  pheno,
+  pmark,
+  min.genoprob = 0.99,
+  k = 20,
+  min.classprob = 0.8,
+  classprob2drop = 1,
+  repeatKNN = TRUE,
+  max.selfd = 0.3,
+  phenolabel = "phenotype",
+  weightByLinkage = FALSE,
   map.function = c("haldane", "kosambi", "c-f", "morgan"),
-  verbose = TRUE)
+  verbose = TRUE
+)
 }
 \arguments{
 \item{cross}{An object of class \code{"cross"} containing data for a QTL
-experiment.  See the help file for \code{\link[qtl]{read.cross}} in the
-R/qtl package (\url{http://www.rqtl.org}).  There must be a phenotype named
+experiment.  See the help file for \code{\link[qtl:read.cross]{qtl::read.cross()}} in the
+R/qtl package (\url{https://rqtl.org}).  There must be a phenotype named
 \code{"id"} or \code{"ID"} that contains the individual identifiers.}
 
 \item{pheno}{A data frame of phenotypes (generally gene expression data),
@@ -21,7 +31,7 @@ stored as individuals x phenotypes.  The row names must contain individual
 identifiers.}
 
 \item{pmark}{Pseudomarkers that are closest to the genes in \code{pheno}, as
-output by \code{\link{find.gene.pseudomarker}}.}
+output by \code{\link[=find.gene.pseudomarker]{find.gene.pseudomarker()}}.}
 
 \item{min.genoprob}{Threshold on genotype probabilities; if maximum
 probability is less than this, observed genotype taken as \code{NA}.}
@@ -79,7 +89,7 @@ corresponding pseudomarker and use the individuals that are in common
 between \code{cross} and \code{pheno} and whose maximum genotype probability
 is above \code{min.genoprob}, to form a classifier of eQTL genotype from
 expression values, using k-nearest neighbor (the function
-\code{\link[class]{knn}}). The classifier is applied to all individuals with
+\code{\link[class:knn]{class::knn()}}). The classifier is applied to all individuals with
 expression data, to give a predicted eQTL genotype. (If the proportion of
 the k nearest neighbors with a common class is less than
 \code{min.classprob}, the predicted eQTL genotype is left as \code{NA}.)
@@ -143,11 +153,11 @@ plotEGclass(d, 2)
 
 }
 \seealso{
-\code{\link{distee}}, \code{\link{summary.lineupdist}},
-\code{\link{pulldiag}}, \code{\link{omitdiag}}, \code{\link{findCommonID}},
-\code{\link{find.gene.pseudomarker}}, \code{\link{calc.locallod}},
-\code{\link{plot.lineupdist}}, \code{\link[class]{knn}},
-\code{\link{plotEGclass}}
+\code{\link[=distee]{distee()}}, \code{\link[=summary.lineupdist]{summary.lineupdist()}},
+\code{\link[=pulldiag]{pulldiag()}}, \code{\link[=omitdiag]{omitdiag()}}, \code{\link[=findCommonID]{findCommonID()}},
+\code{\link[=find.gene.pseudomarker]{find.gene.pseudomarker()}}, \code{\link[=calc.locallod]{calc.locallod()}},
+\code{\link[=plot.lineupdist]{plot.lineupdist()}}, \code{\link[class:knn]{class::knn()}},
+\code{\link[=plotEGclass]{plotEGclass()}}
 }
 \author{
 Karl W Broman, \email{broman@wisc.edu}

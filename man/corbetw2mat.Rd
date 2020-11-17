@@ -4,8 +4,12 @@
 \alias{corbetw2mat}
 \title{Calculate correlations between columns of two matrices}
 \usage{
-corbetw2mat(x, y, what = c("paired", "bestright", "bestpairs", "all"),
-  corthresh = 0.9)
+corbetw2mat(
+  x,
+  y,
+  what = c("paired", "bestright", "bestpairs", "all"),
+  corthresh = 0.9
+)
 }
 \arguments{
 \item{x}{A numeric matrix.}
@@ -44,7 +48,7 @@ columns of y.
 }
 \details{
 Missing values (\code{NA}) are ignored, and we calculate the correlation
-using all complete pairs, as in \code{\link[stats]{cor}} with
+using all complete pairs, as in \code{\link[stats:cor]{stats::cor()}} with
 \code{use="pairwise.complete.obs"}.
 }
 \examples{
@@ -66,7 +70,7 @@ r_bestright <- corbetw2mat(expr1, expr2, what="bestright")
 
 }
 \seealso{
-\code{\link{distee}}, \code{\link{findCommonID}}
+\code{\link[=distee]{distee()}}, \code{\link[=findCommonID]{findCommonID()}}
 }
 \author{
 Karl W Broman, \email{broman@wisc.edu}

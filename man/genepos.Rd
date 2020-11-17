@@ -4,13 +4,15 @@
 \name{genepos}
 \alias{genepos}
 \title{Genomic positions of genes in simulated expression data}
-\format{A data frame with two columns, chromosome and physical position (in Mbp).}
+\format{
+A data frame with two columns, chromosome and physical position (in Mbp).
+}
 \usage{
 data(genepos)
 }
 \description{
 A table with the genomic positions of genes in the simulated
-expression data, \code{\link{expr1}} and \code{\link{expr2}}.
+expression data, \code{\link[=expr1]{expr1()}} and \code{\link[=expr2]{expr2()}}.
 }
 \examples{
 data(genepos)
@@ -23,6 +25,6 @@ genepos_interp <- interpPositions(genepos, pmap, pull.map(f2cross))
 genepos[1:5,] # 'newpos' column is the interpolated cM position
 }
 \seealso{
-\code{\link{expr1}}, \code{\link{expr2}}, \code{\link{f2cross}}, \code{\link{pmap}}
+\code{\link[=expr1]{expr1()}}, \code{\link[=expr2]{expr2()}}, \code{\link[=f2cross]{f2cross()}}, \code{\link[=pmap]{pmap()}}
 }
 \keyword{datasets}
