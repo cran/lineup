@@ -1,3 +1,13 @@
+## Version 0.44, 2024-07-15
+
+- Fixed link in documention
+
+
+## Version 0.43-1, 2023-02-19
+
+- Revise CITATION file to use `bibentry()` rather than `citEntry()`
+
+
 ## Version 0.42, 2022-07-10
 
 - Include <limits.h> in a C file, for an upcoming change in R
