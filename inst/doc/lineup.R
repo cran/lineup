@@ -13,15 +13,15 @@ data(pmap)
 data(genepos)
 
 ## ----load_libraries, eval=FALSE-----------------------------------------------
-#  library(qtl)
-#  library(lineup)
+# library(qtl)
+# library(lineup)
 
 ## ----load_data_shown, eval=FALSE----------------------------------------------
-#  data(f2cross)
-#  data(expr1)
-#  data(expr2)
-#  data(pmap)
-#  data(genepos)
+# data(f2cross)
+# data(expr1)
+# data(expr2)
+# data(pmap)
+# data(genepos)
 
 ## ----scale_expr---------------------------------------------------------------
 expr1 <- expr1/1000
